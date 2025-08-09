@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/styles.css"/>
+    <title>YT Download</title>
+</head>
+<body>
+
+    <form action="/" method="POST" class="form">
+        <div class="container">
+            <input class="ipt" name="url" type="text" autofocus placeholder="Enter video link">
+            <button class="btn" type="submit">Download</button>
+        </div>
+        <div class="chose">
+            <div class="icon"><img src="static/download.png"></img></div>
+            <div class="folder">
+                <label class="lb">Choose Folder</label>
+                <input type="text" id="folderPath" class="br"  name="folder">
+                <button type="button" class="br pd" onclick="chooseFolder()">Browse...</button><br><br>
+            </div>
+            
+           <div class="quality">
+                <label class="lb">Chose Quality       </label>
+                <select name="quality" class="br pd" >
+                    <option value="best">Best</option>
+                    <option value="1080">1080p</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                    <option value="360">360p</option>
+                </select>
+           </div>
+
+            <div class="check">
+                 <label class="lb">Whole Playlist</label>
+                <input class="checkbox" type="checkbox" name="playlist" readonly>     
+            </div>
+        </div>
+    </form>  
+
+    <div class="progress">
+        <h4 id="per"><span id="downloading"></span><span id="title"></span></h4>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+         <span id="percent"></span>
+    </div>
+    
+
+    <script>
+        function chooseFolder() {
+            fetch('/choose_folder')
+                .then(response => response.text())
+                .then(path => {
+                    document.getElementById("folderPath").value = path;
+                });
+        }
+
+        const source = new EventSource("/progress");
+        source.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const percent = parseFloat(data.percent);
+            const title = data.title;
+            const percentDisplay = document.getElementById("percent");
+            const titleDisplay = document.getElementById("title");
+            const downloading = document.getElementById("downloading");
+            const progressBar = document.getElementById("progressBar");
+
+            if (!isNaN(percent)) {
+                percentDisplay.innerText = " " + percent.toFixed(1);
+                downloading.innerText = "Downloading: "
+                titleDisplay.innerText = title;
+
+                const progressWidth = Math.min(Math.max(percent, 0), 100);
+                progressBar.style.width = `${progressWidth}%`;
+            } else {
+                percentDisplay.innerText = "";
+                // titleDisplay.innerText = "Unknown";
+                progressBar.style.width = "";
+            }
+        };
+
+        source.onerror = () => {
+            source.close();
+            document.getElementById("percent").innerText = "0";
+            document.getElementById("title").innerText = "Unknown";
+            document.getElementById("progressBar").style.width = "0%";
+        };
+    </script>
+</body>
+</html>
