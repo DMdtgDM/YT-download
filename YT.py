@@ -58,7 +58,8 @@ def index():
                 'format': fmt,
                 'merge_output_format': 'mp4',
                 'progress_hooks': [progress_hook],
-                'outtmpl': os.path.join(folder, "%(title)s.%(ext)s")
+                'outtmpl': os.path.join(folder, "%(title)s.%(ext)s"),
+                'ignoreerrors': True
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
